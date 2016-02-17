@@ -18,6 +18,13 @@ public class Emoticon {
         emoticons.put(":P", "icon/emoticon_tongue.gif");        
         emoticons.put(":O", "icon/emoticon_O.gif");        
         emoticons.put(":dog", "icon/emoticon_dog.gif");
+        emoticons.put(":X", "icon/emoticon_X.gif");
+        emoticons.put(":sleep", "icon/emoticon_sleep.gif");
+        emoticons.put(":poop", "icon/emoticon_poop.gif");
+        emoticons.put("B)", "icon/emoticon_glass.gif");
+        emoticons.put(":cow", "icon/emoticon_cow.gif");        
+        emoticons.put("^^D", "icon/emoticon_laugh_3.gif");
+        emoticons.put("^^", "icon/emoticon_laugh_2.gif");       
     }
     
     public static boolean isValid(String key) {
