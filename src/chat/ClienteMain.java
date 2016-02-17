@@ -244,8 +244,8 @@ public class ClienteMain extends Cliente {
 
     private void escreverTexto(Date data, String usuario, String mensagem, SimpleAttributeSet fonte) {
         escreverPrefixoMensagem(data, usuario, fonte);
-        String restoMensagem = processarMensagem(mensagem);
-        escreverMensagem(restoMensagem, true);
+        processarMensagem(mensagem);
+        escreverMensagem("", true);
         chatView.jTextPaneChat.setCaretPosition(doc.getLength() - 1);
 
         if (!chatView.isActive()) {
@@ -260,51 +260,66 @@ public class ClienteMain extends Cliente {
         try {
             doc.insertString(doc.getLength(), "(" + dataFormatada + ")" + usuario + ": ", fonte);
         } catch (BadLocationException ex) {
-            
+
         }
     }
-    
+
     private void escreverMensagem(String mensagem) {
         escreverMensagem(mensagem, false);
     }
 
     private void escreverMensagem(String mensagem, boolean pulaLinha) {
         try {
-            
+
             if (pulaLinha) {
                 doc.insertString(doc.getLength(), mensagem + "\n", null);
             } else {
                 doc.insertString(doc.getLength(), mensagem, null);
             }
-            
+
         } catch (BadLocationException ex) {
-            
+
         }
 
     }
-    
-    private void escreverEmoticon(String key) {        
-        if(Emoticon.isValid(key)){
+
+    private void escreverEmoticon(String key) {
+        if (Emoticon.isValid(key)) {
             String url = Emoticon.emoticons.get(key);
             try {
                 doc.insertString(doc.getLength(), "mensagem ignorada", getEmoticonImagem(url));
             } catch (BadLocationException ex) {
-                
+
             }
         }
     }
-    
-    private String processarMensagem(String mensagem){
-        for(String chave : Emoticon.emoticons.keySet()){
-            boolean contemEmoticon = mensagem.contains(chave);
-            if(contemEmoticon){
-                int posicaoInicialEmoticon = mensagem.indexOf(chave);
-                String prefixoMensagem = mensagem.substring(0, posicaoInicialEmoticon);
-                escreverMensagem(prefixoMensagem);
-                escreverEmoticon(chave);
-                mensagem = mensagem.substring(posicaoInicialEmoticon+chave.length());
+
+    private String processarMensagem(String mensagem) {
+        if (mensagem.equals("")) {
+            return mensagem;
+        }
+
+        boolean continua = true;
+        while (continua) {
+            for (String chave : Emoticon.emoticons.keySet()) {
+                boolean contemEmoticon = mensagem.contains(chave);
+                if (contemEmoticon) {
+                    int posicaoInicialEmoticon = mensagem.indexOf(chave);
+                    String prefixoMensagem = mensagem.substring(0, posicaoInicialEmoticon);
+                    processarMensagem(prefixoMensagem);
+                    escreverEmoticon(chave);
+                    mensagem = mensagem.substring(posicaoInicialEmoticon + chave.length());
+                    continua = true;
+                    break;
+                }
+                continua = false;
             }
         }
+
+        if (mensagem.length() > 0) {
+            escreverMensagem(mensagem);
+        }
+
         return mensagem;
     }
 
@@ -338,7 +353,6 @@ public class ClienteMain extends Cliente {
 //            Logger.getLogger(ClienteMain.class.getName()).log(Level.SEVERE, null, ex);
 //        }
 //    }
-
     private Style getEmoticonImagem(String path) {
         ClassLoader cl = getClass().getClassLoader();
         URL url = cl.getResource(path);
