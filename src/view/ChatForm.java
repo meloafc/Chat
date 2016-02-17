@@ -37,7 +37,7 @@ public class ChatForm extends javax.swing.JFrame {
         jLabelEscrevendo = new javax.swing.JLabel();
         jLabelUsuarios = new javax.swing.JLabel();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
 
         jLabelUsuario.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
         jLabelUsuario.setText("usuário");

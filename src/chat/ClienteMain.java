@@ -12,22 +12,18 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
-import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
-import javax.swing.SwingConstants;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
@@ -112,8 +108,11 @@ public class ClienteMain extends Cliente {
         chatView.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                chatView.dispose();
-                deslogar();
+                int dialogResult = JOptionPane.showConfirmDialog(chatView, "Deseja realmente sair?", "Sair", JOptionPane.YES_NO_OPTION);
+                if(dialogResult == JOptionPane.YES_OPTION){
+                    deslogar();
+                    System.exit(0);                    
+                }                
             }
         });
 
@@ -322,37 +321,7 @@ public class ClienteMain extends Cliente {
 
         return mensagem;
     }
-
-//    private void processarMensagem(String mensagem) {
-//        boolean lendoEmoticon = false;
-//        String texto = "";
-//        String emoticonTexto = "";
-//        for (int i = 0; i < mensagem.length(); i++) {
-//            Character caracter = mensagem.charAt(i);
-//            if (caracter.equals(':') || caracter.equals(';') || lendoEmoticon) {
-//                lendoEmoticon = true;
-//                emoticonTexto += caracter;
-//                Emoticon emoticon = new Emoticon(emoticonTexto);
-//                if (emoticon.isValid()) {
-//                    try {
-//                        doc.insertString(doc.getLength(), texto, null);
-//                        doc.insertString(doc.getLength(), mensagem, getEmoticonImagem(emoticon));
-//                        emoticonTexto = "";
-//                        texto = "";
-//                        lendoEmoticon = false;
-//                    } catch (BadLocationException ex) {
-//                    }
-//                }
-//            } else {
-//                texto += caracter;
-//            }
-//        }
-//        try {
-//            doc.insertString(doc.getLength(), texto + emoticonTexto + "\n", null);
-//        } catch (BadLocationException ex) {
-//            Logger.getLogger(ClienteMain.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-//    }
+    
     private Style getEmoticonImagem(String path) {
         ClassLoader cl = getClass().getClassLoader();
         URL url = cl.getResource(path);
