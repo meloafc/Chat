@@ -5,10 +5,12 @@
  */
 package chat;
 
+import facade.GerenciaHistoricoPacoteCliente;
 import java.awt.Color;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
@@ -59,25 +61,67 @@ public class ClienteMain extends Cliente {
     private boolean focus;
     private boolean digitando;
 
+    private Action enviarMensagem;
+    private Action getMensagemAnterior;
+    private Action getProximaMensagem;
+
     private KeyStroke keyStroke;
     private static final String enter = "ENTER";
-
-    private Action enviar = new AbstractAction() {
-        @Override
-        public void actionPerformed(ActionEvent ae) {
-            chatView.jButtonEnviar.doClick();
-        }
-    };
 
     public ClienteMain() {
         super();
         loginView = new LoginForm();
         chatView = new ChatForm();
-        loginView.setVisible(true);
-        carregarTelaLogin();
+        loginView.setVisible(true);        
         connected = false;
+        carregamentoGeral();
+    }
+    
+    private void carregamentoGeral(){
+        carregarTelaLogin();
         carregarFonte();
         carregarTelaChat();
+        carregarActions();
+    }
+
+    private void carregarActions() {
+        enviarMensagem = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                chatView.jButtonEnviar.doClick();
+            }
+        };
+
+        getMensagemAnterior = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                getMensagemAnterior();
+            }
+        };
+
+        getProximaMensagem = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                getProximaMensagem();
+            }
+        };
+        
+        chatView.jTextPaneMesagem.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_UP,
+                java.awt.event.InputEvent.SHIFT_DOWN_MASK),
+                "up");
+        chatView.jTextPaneMesagem.getActionMap().put("up",
+                getMensagemAnterior);
+
+        chatView.jTextPaneMesagem.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN,
+                java.awt.event.InputEvent.SHIFT_DOWN_MASK),
+                "down");
+        chatView.jTextPaneMesagem.getActionMap().put("down",
+                getProximaMensagem);
+        
+        keyStroke = KeyStroke.getKeyStroke(enter);
+        Object actionKey = chatView.jTextPaneMesagem.getInputMap(
+                JComponent.WHEN_FOCUSED).get(keyStroke);
+        chatView.jTextPaneMesagem.getActionMap().put(actionKey, enviarMensagem);
     }
 
     private void carregarTelaLogin() {
@@ -95,7 +139,7 @@ public class ClienteMain extends Cliente {
             }
         });
     }
-
+    
     private void carregarTelaChat() {
         usuariosVisualizandoTela = new ArrayList<>();
         chatView.jButtonEnviar.addActionListener(new ActionListener() {
@@ -109,17 +153,13 @@ public class ClienteMain extends Cliente {
             @Override
             public void windowClosing(WindowEvent e) {
                 int dialogResult = JOptionPane.showConfirmDialog(chatView, "Deseja realmente sair?", "Sair", JOptionPane.YES_NO_OPTION);
-                if(dialogResult == JOptionPane.YES_OPTION){
+                if (dialogResult == JOptionPane.YES_OPTION) {
                     deslogar();
-                    System.exit(0);                    
-                }                
+                    System.exit(0);
+                }
             }
         });
-
-        keyStroke = KeyStroke.getKeyStroke(enter);
-        Object actionKey = chatView.jTextPaneMesagem.getInputMap(
-                JComponent.WHEN_FOCUSED).get(keyStroke);
-        chatView.jTextPaneMesagem.getActionMap().put(actionKey, enviar);
+        
         chatView.jTextPaneMesagem.getStyledDocument().addDocumentListener(new DocumentListener() {
 
             @Override
@@ -155,6 +195,24 @@ public class ClienteMain extends Cliente {
         });
 
     }
+    
+    private void carregarFonte() {
+        doc = chatView.jTextPaneChat.getStyledDocument();
+        minhaFonte = new SimpleAttributeSet();
+        StyleConstants.setForeground(minhaFonte, Color.BLUE);
+        outraFonte = new SimpleAttributeSet();
+        StyleConstants.setForeground(outraFonte, Color.RED);
+        alertaFonte = new SimpleAttributeSet();
+        StyleConstants.setForeground(alertaFonte, Color.ORANGE);
+    }
+
+    private void getMensagemAnterior() {
+        chatView.jTextPaneMesagem.setText(gerenciador.getMensagemAnterior());
+    }
+
+    private void getProximaMensagem() {
+        chatView.jTextPaneMesagem.setText(gerenciador.getProximaMensagem());
+    }   
 
     private void fazerLogin() {
         enderecoServidor = loginView.jTextFieldEndereco.getText();
@@ -162,6 +220,7 @@ public class ClienteMain extends Cliente {
         String nome = loginView.jTextFieldUsuario.getText();
         usuario = new Usuario();
         usuario.setNome(nome);
+        gerenciador = new GerenciaHistoricoPacoteCliente(usuario);
         if (start()) {
             loginView.setVisible(false);
             chatView.setVisible(true);
@@ -175,6 +234,7 @@ public class ClienteMain extends Cliente {
             if (!chatView.jTextPaneMesagem.getText().equals("")) {
                 PacoteCliente pacote = gerarPacoteCliente(chatView.jTextPaneMesagem.getText());
                 enviarPacote(pacote);
+                gerenciador.addMensagem(pacote);
                 chatView.jTextPaneMesagem.setText("");
             }
         }
@@ -321,7 +381,7 @@ public class ClienteMain extends Cliente {
 
         return mensagem;
     }
-    
+
     private Style getEmoticonImagem(String path) {
         ClassLoader cl = getClass().getClassLoader();
         URL url = cl.getResource(path);
@@ -349,17 +409,7 @@ public class ClienteMain extends Cliente {
         int G = (int) (Math.random() * 256);
         int B = (int) (Math.random() * 256);
         return new Color(R, G, B);
-    }
-
-    private void carregarFonte() {
-        doc = chatView.jTextPaneChat.getStyledDocument();
-        minhaFonte = new SimpleAttributeSet();
-        StyleConstants.setForeground(minhaFonte, Color.BLUE);
-        outraFonte = new SimpleAttributeSet();
-        StyleConstants.setForeground(outraFonte, Color.RED);
-        alertaFonte = new SimpleAttributeSet();
-        StyleConstants.setForeground(alertaFonte, Color.ORANGE);
-    }
+    }   
 
     private void mostrarUsuariosVisualizandoTela() {
         String texto = "";

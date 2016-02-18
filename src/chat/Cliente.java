@@ -1,5 +1,6 @@
 package chat;
 
+import facade.GerenciaHistoricoPacoteCliente;
 import java.net.*;
 import java.io.*;
 import modelo.PacoteCliente;
@@ -14,6 +15,7 @@ public abstract class Cliente {
     protected String enderecoServidor;
     protected Usuario usuario;
     protected int porta;
+    protected GerenciaHistoricoPacoteCliente gerenciador;
 
     public boolean start() {
         try {
