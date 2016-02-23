@@ -5,10 +5,13 @@
  */
 package chat;
 
+import facade.GerenciadorArquivo;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.net.UnknownHostException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import view.ServerForm;
 
 /**
@@ -81,7 +84,16 @@ public class ServidorMain {
 
     private void pararServidor() {
         if (servidor != null && online) {
+            guardarHistorioMensagens();
             servidor.stop();
+        }
+    }
+    
+    private void guardarHistorioMensagens(){
+        try {
+            GerenciadorArquivo.escreverArquivo(servidor.getMensagens());
+        } catch (IOException ex) {
+            ex.printStackTrace();
         }
     }
 

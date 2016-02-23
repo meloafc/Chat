@@ -17,6 +17,7 @@ public class Server {
     private List<Usuario> usuariosVisualizando;
     private int porta;
     private boolean online;
+    private List<PacoteServidor> mensagens;
     private ServidorMain tela;
 
     public Server(int porta) {
@@ -24,6 +25,7 @@ public class Server {
         clientes = new ArrayList<>();
         usuariosDigitando = new ArrayList<>();
         usuariosVisualizando = new ArrayList<>();
+        mensagens = new ArrayList<>();
         contadorPacotesEnviados = 0;
         contadorPacotesRecebidos = 0;
         tela = null;
@@ -75,6 +77,10 @@ public class Server {
      *  enviando Pacote para clientes conectados
      */
     private synchronized void broadcast(PacoteServidor pacoteServidor) {
+        if(!pacoteServidor.getMensagem().equals("")){
+            mensagens.add(pacoteServidor);
+        }
+        
         //loop de tras pra frente para caso precise remover um usuario desconectado;
         for (int i = clientes.size(); --i >= 0;) {
             ClientThread ct = clientes.get(i);
@@ -358,7 +364,11 @@ public class Server {
 
     public long getContadorPacotesRecebidos() {
         return contadorPacotesRecebidos;
-    }    
+    }   
+
+    public List<PacoteServidor> getMensagens() {
+        return mensagens;
+    }   
     
     public static void main(String[] args) {
         int portNumber = 5556;
