@@ -8,6 +8,9 @@ package chat;
 import facade.GerenciaComandos;
 import facade.GerenciaHistoricoPacoteCliente;
 import java.awt.Color;
+import java.awt.Frame;
+import java.awt.KeyEventDispatcher;
+import java.awt.KeyboardFocusManager;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -141,6 +144,27 @@ public class ClienteMain extends Cliente implements InterfaceCliente {
                 loginView.dispose();
             }
         });
+
+        KeyboardFocusManager manager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+        
+        manager.addKeyEventDispatcher(new KeyEventDispatcher() {
+            @Override
+            public boolean dispatchKeyEvent(KeyEvent e) {
+                if(e.getKeyCode() == KeyEvent.VK_ESCAPE){
+                    
+                    if(loginView.isVisible()){
+                        loginView.setState(Frame.ICONIFIED);
+                    }
+                    
+                    if(chatView.isVisible()){
+                        chatView.setState(Frame.ICONIFIED);
+                    }
+                    
+                    
+                }
+                return false;
+            }
+        });
     }
 
     private void carregarTelaChat() {
@@ -224,7 +248,7 @@ public class ClienteMain extends Cliente implements InterfaceCliente {
         usuario = new Usuario();
         usuario.setNome(nome);
         gerenciador = new GerenciaHistoricoPacoteCliente(usuario);
-        if (start()) {            
+        if (start()) {
             loginView.setVisible(false);
             chatView.setVisible(true);
             chatView.jLabelUsuario.setText(usuario.getNome());
@@ -247,12 +271,12 @@ public class ClienteMain extends Cliente implements InterfaceCliente {
     public void limparChat() {
         chatView.jTextPaneChat.setText("");
     }
-    
-    private void limparCampoMensagem(){
+
+    private void limparCampoMensagem() {
         chatView.jTextPaneMesagem.setText("");
     }
-    
-    private void limparTelaLogin(){
+
+    private void limparTelaLogin() {
         loginView.jTextFieldEndereco.setText("");
         loginView.jTextFieldPorta.setText("");
         loginView.jTextFieldUsuario.setText("");
@@ -267,9 +291,9 @@ public class ClienteMain extends Cliente implements InterfaceCliente {
         limparTelaLogin();
         limparCampoMensagem();
     }
-    
+
     @Override
-    public void finalizarAplicacao(){
+    public void finalizarAplicacao() {
         deslogar();
         System.exit(0);
     }
