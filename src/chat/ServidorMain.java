@@ -92,6 +92,7 @@ public class ServidorMain {
     private void guardarHistorioMensagens(){
         try {
             GerenciadorArquivo.escreverArquivo(servidor.getMensagens());
+            GerenciadorArquivo.gerarJson(servidor.getMensagens());
         } catch (IOException ex) {
             ex.printStackTrace();
         }
