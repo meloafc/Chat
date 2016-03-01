@@ -101,6 +101,7 @@ public class Server {
             ClientThread ct = clientes.get(i);
             // found it
             if (ct.id == id) {
+                desconectarUsuario(ct.usuario);
                 clientes.remove(i);
                 return;
             }

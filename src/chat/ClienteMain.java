@@ -5,6 +5,7 @@
  */
 package chat;
 
+import facade.GerenciaComandos;
 import facade.GerenciaHistoricoPacoteCliente;
 import java.awt.Color;
 import java.awt.Toolkit;
@@ -45,10 +46,11 @@ import view.LoginForm;
  *
  * @author Hardware
  */
-public class ClienteMain extends Cliente {
+public class ClienteMain extends Cliente implements InterfaceCliente {
 
     private ChatForm chatView;
     private LoginForm loginView;
+    private GerenciaComandos comandos;
     StyledDocument doc;
     SimpleAttributeSet minhaFonte;
     SimpleAttributeSet outraFonte;
@@ -72,12 +74,13 @@ public class ClienteMain extends Cliente {
         super();
         loginView = new LoginForm();
         chatView = new ChatForm();
-        loginView.setVisible(true);        
+        loginView.setVisible(true);
         connected = false;
         carregamentoGeral();
+        comandos = new GerenciaComandos(this);
     }
-    
-    private void carregamentoGeral(){
+
+    private void carregamentoGeral() {
         carregarTelaLogin();
         carregarFonte();
         carregarTelaChat();
@@ -105,7 +108,7 @@ public class ClienteMain extends Cliente {
                 getProximaMensagem();
             }
         };
-        
+
         chatView.jTextPaneMesagem.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_UP,
                 java.awt.event.InputEvent.SHIFT_DOWN_MASK),
                 "up");
@@ -117,7 +120,7 @@ public class ClienteMain extends Cliente {
                 "down");
         chatView.jTextPaneMesagem.getActionMap().put("down",
                 getProximaMensagem);
-        
+
         keyStroke = KeyStroke.getKeyStroke(enter);
         Object actionKey = chatView.jTextPaneMesagem.getInputMap(
                 JComponent.WHEN_FOCUSED).get(keyStroke);
@@ -139,7 +142,7 @@ public class ClienteMain extends Cliente {
             }
         });
     }
-    
+
     private void carregarTelaChat() {
         usuariosVisualizandoTela = new ArrayList<>();
         chatView.jButtonEnviar.addActionListener(new ActionListener() {
@@ -155,11 +158,10 @@ public class ClienteMain extends Cliente {
                 int dialogResult = JOptionPane.showConfirmDialog(chatView, "Deseja realmente sair?", "Sair", JOptionPane.YES_NO_OPTION);
                 if (dialogResult == JOptionPane.YES_OPTION) {
                     deslogar();
-                    System.exit(0);
                 }
             }
         });
-        
+
         chatView.jTextPaneMesagem.getStyledDocument().addDocumentListener(new DocumentListener() {
 
             @Override
@@ -195,7 +197,7 @@ public class ClienteMain extends Cliente {
         });
 
     }
-    
+
     private void carregarFonte() {
         doc = chatView.jTextPaneChat.getStyledDocument();
         minhaFonte = new SimpleAttributeSet();
@@ -212,16 +214,17 @@ public class ClienteMain extends Cliente {
 
     private void getProximaMensagem() {
         chatView.jTextPaneMesagem.setText(gerenciador.getProximaMensagem());
-    }   
+    }
 
     private void fazerLogin() {
+        limparChat();
         enderecoServidor = loginView.jTextFieldEndereco.getText();
         porta = Integer.parseInt(loginView.jTextFieldPorta.getText());
         String nome = loginView.jTextFieldUsuario.getText();
         usuario = new Usuario();
         usuario.setNome(nome);
         gerenciador = new GerenciaHistoricoPacoteCliente(usuario);
-        if (start()) {
+        if (start()) {            
             loginView.setVisible(false);
             chatView.setVisible(true);
             chatView.jLabelUsuario.setText(usuario.getNome());
@@ -240,10 +243,35 @@ public class ClienteMain extends Cliente {
         }
     }
 
-    private void deslogar() {
-        if (connected) {
-            enviarPacote(gerarPacoteClienteDeslogar());
-        }
+    @Override
+    public void limparChat() {
+        chatView.jTextPaneChat.setText("");
+    }
+    
+    private void limparCampoMensagem(){
+        chatView.jTextPaneMesagem.setText("");
+    }
+    
+    private void limparTelaLogin(){
+        loginView.jTextFieldEndereco.setText("");
+        loginView.jTextFieldPorta.setText("");
+        loginView.jTextFieldUsuario.setText("");
+    }
+
+    @Override
+    public void deslogar() {
+        enviarPacote(gerarPacoteClienteDeslogar());
+        connected = false;
+        chatView.setVisible(false);
+        loginView.setVisible(true);
+        limparTelaLogin();
+        limparCampoMensagem();
+    }
+    
+    @Override
+    public void finalizarAplicacao(){
+        deslogar();
+        System.exit(0);
     }
 
     private void campoMensagemAlterado() {
@@ -281,6 +309,9 @@ public class ClienteMain extends Cliente {
         atualizarTela();
 
         if (!pacoteServidor.getMensagem().equals("")) {
+
+            boolean mensagemContemCodigo = comandos.mensagemContemCodigo(pacoteServidor.getMensagem());
+
             if (pacoteServidor.getUsuario().getNome().equals(usuario.getNome())) {
                 escreverTexto(pacoteServidor, minhaFonte);
             } else if (pacoteServidor.getUsuario().getNome().equals(PacoteServidor.SERVIDOR_REMETENTE)) {
@@ -409,7 +440,7 @@ public class ClienteMain extends Cliente {
         int G = (int) (Math.random() * 256);
         int B = (int) (Math.random() * 256);
         return new Color(R, G, B);
-    }   
+    }
 
     private void mostrarUsuariosVisualizandoTela() {
         String texto = "";
@@ -466,6 +497,11 @@ public class ClienteMain extends Cliente {
 
     private PacoteCliente gerarPacoteClienteIsVisualizando() {
         return gerarPacoteClienteIsVisualizando(focus);
+    }
+
+    @Override
+    public String getUsuario() {
+        return usuario.getNome();
     }
 
     public static void main(String[] args) {
